@@ -26,7 +26,7 @@ func (h *UploadHandler) UploadPdf(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	// Create a temporary file to store the uploaded file
-	tempFile, err := ioutil.TempFile("", "uploaded-*.pdf")
+	tempFile, err := ioutil.TempFile("", "uploaded.pdf")
 	if err != nil {
 		http.Error(w, "Failed to create temporary file", http.StatusInternalServerError)
 		return
@@ -56,7 +56,7 @@ func (h *UploadHandler) UploadPdf(w http.ResponseWriter, r *http.Request) {
 	buf.ReadFrom(b)
 	// Convert the PDF file to DOCX
 	docxPath := tempFile.Name() + ".docx"
-	err = convertPDFtoDOCX(pdfReader, docxPath)
+	err = ioutil.WriteFile(docxPath, []byte(buf.String()), 0644)
 	if err != nil {
 		http.Error(w, "Failed to convert PDF to DOCX", http.StatusInternalServerError)
 		return
@@ -75,25 +75,4 @@ func (h *UploadHandler) UploadPdf(w http.ResponseWriter, r *http.Request) {
 
 	// Write the converted file to the response
 	w.Write(docxData)
-}
-
-func convertPDFtoDOCX(pdfReader *pdf.PdfReader, docxPath string) error {
-	writer := pdf.NewDocxWriter()
-	defer writer.Close()
-
-	numPages := pdfReader.GetNumPages()
-	for i := 0; i < numPages; i++ {
-		page := pdfReader.GetPage(i + 1)
-		err := writer.AddPage(page)
-		if err != nil {
-			return err
-		}
-	}
-
-	err := writer.WriteToFile(docxPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
