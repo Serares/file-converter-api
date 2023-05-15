@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 // Config holds the application configuration
@@ -16,6 +18,7 @@ type Config struct {
 
 // LoadConfig loads the configuration from environment variables
 func LoadConfig() *Config {
+	godotenv.Load()
 	port, err := strconv.Atoi(getEnv("PORT", "8080"))
 	if err != nil {
 		log.Fatal("Invalid PORT value")
